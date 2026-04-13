@@ -8,13 +8,11 @@ use Filament\Actions\EditAction;
 use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Actions\ViewAction;
-use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\BadgeColumn;
-use Filament\Tables\Columns\TagsColumn;
 use Filament\Tables\Columns\ImageColumn;
-use Filament\Tables\Columns\IconColumn;
-use Filament\Tables\Filters\TrashedFilter;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 
 class KamarsTable
@@ -23,24 +21,62 @@ class KamarsTable
     {
         return $table
             ->columns([
-                TextColumn::make('nomor')->label('Room')->searchable()->sortable(),
-                BadgeColumn::make('jenis')->label('Type')
-                    ->colors(['primary' => 'reguler', 'warning' => 'premium', 'danger' => 'vip']),
-                TextColumn::make('harga')->label('Price')->money('IDR')->sortable(),
-                TextColumn::make('ukuran')->label('Size')->suffix(' m²'),
-                ImageColumn::make('images')->label('Images')->circular()->stacked()->limit(3),
-                BadgeColumn::make('tipe_penghuni')->label('For')
-                    ->colors(['info' => 'Putra', 'danger' => 'Putri', 'success' => 'Campur']),
-                TextColumn::make('kapasitas')->label('Capacity')->suffix(' Orang')->toggleable(isToggledHiddenByDefault: true),
-                TagsColumn::make('fasilitas')->label('Facilities'),
-                BadgeColumn::make('status')->label('Status')
+                TextColumn::make('nomor')
+                    ->label('Room')
+                    ->searchable()
+                    ->sortable()
+                    ->weight('bold'),
+
+                ImageColumn::make('images')
+                    ->label('Images')
+                    ->circular()
+                    ->stacked()
+                    ->limit(3),
+
+                BadgeColumn::make('jenis')
+                    ->label('Type')
+                    ->colors([
+                        'primary' => 'reguler',
+                        'warning' => 'premium',
+                        'danger' => 'vip',
+                    ]),
+
+                TextColumn::make('harga')
+                    ->label('Price')
+                    ->money('IDR')
+                    ->sortable(),
+
+                BadgeColumn::make('tipe_penghuni')
+                    ->label('For')
+                    ->colors([
+                        'info' => 'Putra',
+                        'danger' => 'Putri',
+                        'success' => 'Campur',
+                    ]),
+
+                BadgeColumn::make('status')
+                    ->label('Status')
                     ->formatStateUsing(fn ($state) => $state ? 'Available' : 'Occupied')
-                    ->colors(['success' => true, 'danger' => false]),
-                IconColumn::make('is_furnished')->label('Furnished')->boolean()->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('deleted_at')->label('Deleted')->dateTime()->toggleable(isToggledHiddenByDefault: true),
+                    ->colors([
+                        'success' => true,
+                        'danger' => false,
+                    ]),
             ])
             ->filters([
                 TrashedFilter::make(),
+
+                SelectFilter::make('jenis')
+                    ->options([
+                        'reguler' => 'Reguler',
+                        'premium' => 'Premium',
+                        'vip' => 'VIP',
+                    ]),
+
+                SelectFilter::make('status')
+                    ->options([
+                        1 => 'Available',
+                        0 => 'Occupied',
+                    ]),
             ])
             ->recordActions([
                 ViewAction::make(),
@@ -52,6 +88,7 @@ class KamarsTable
                     ForceDeleteBulkAction::make(),
                     RestoreBulkAction::make(),
                 ]),
-            ]);
+            ])
+            ->defaultSort('nomor');
     }
 }
