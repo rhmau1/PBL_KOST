@@ -19,10 +19,16 @@ class Penghuni extends Model
         'nama_wali',
         'alamat',
         'tanggal_masuk',
+        'kos_id',
     ];
 
     public function user()
     {
         return $this->belongsTo(User::class);
     }
+
+    public function kos()
+    {
+        return $this->belongsTo(Kos::class);
+    }   
 }

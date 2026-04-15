@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'email', 'password'])]
+#[Fillable(['name', 'email', 'password', 'role'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -28,5 +28,37 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function isAdmin()
+    {
+        return $this->role === 'admin';
+    }
+
+    public function isPenghuni()
+    {
+        return $this->role === 'penghuni';
+    }
+
+    public function penghuni()
+    {
+        return $this->hasOne(Penghuni::class);
+    }
+
+    public function kos()
+    {
+        return $this->hasOne(Kos::class);
+    }
+
+    protected static function booted()
+    {
+        static::created(function ($user) {
+            if ($user->role === 'penghuni') {
+                Penghuni::create([
+                    'user_id' => $user->id,
+                    'nama' => $user->name,
+                ]);
+            }
+        });
     }
 }

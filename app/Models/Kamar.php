@@ -9,8 +9,11 @@ class Kamar extends Model
 {
     //
     use SoftDeletes;
+
     protected $table = 'kamar';
+
     protected $primaryKey = 'nomor';
+
     protected $fillable = [
         'nomor',
         'jenis',
@@ -24,7 +27,9 @@ class Kamar extends Model
         'kapasitas',
         'is_furnished',
         'aturan_khusus',
+        'kos_id',
     ];
+
     protected $casts = [
         'fasilitas' => 'array',
         'harga' => 'integer',
@@ -33,4 +38,9 @@ class Kamar extends Model
         'kapasitas' => 'integer',
         'is_furnished' => 'boolean',
     ];
+
+    public function kos()
+    {
+        return $this->belongsTo(Kos::class);
+    }
 }

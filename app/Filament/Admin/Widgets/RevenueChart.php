@@ -13,7 +13,7 @@ class RevenueChart extends ChartWidget
         return [
             'datasets' => [
                 [
-                    'label' => 'Pendapatan',
+                    'label' => 'Data Dummy Pendapatan',
                     'data' => [1000000, 2000000, 1500000, 3000000],
                 ],
             ],
