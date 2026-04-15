@@ -8,9 +8,4 @@ use Filament\Resources\Pages\CreateRecord;
 class CreateKamar extends CreateRecord
 {
     protected static string $resource = KamarResource::class;
-
-    protected function getFormActions(): array
-    {
-        return [];
-    }
 }
