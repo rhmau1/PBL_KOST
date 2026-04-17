@@ -12,6 +12,7 @@ use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Illuminate\Validation\Rules\Unique;
 
 class KamarForm
 {
@@ -24,7 +25,13 @@ class KamarForm
                     ->description('Basic information about the room')
                     ->schema([
                         Group::make([
-                            TextInput::make('nomor')->required()->numeric(),
+                            TextInput::make('nomor')
+                                ->required()
+                                ->numeric()
+                                ->unique(ignoreRecord: true, modifyRuleUsing: function (Unique $rule) {
+                                    $kos = \App\Models\Kos::where('user_id', auth()->id())->first();
+                                    return $rule->where('kos_id', $kos?->id);
+                                }),
                             Select::make('jenis')->options([
                                 'reguler' => 'Reguler',
                                 'premium' => 'Premium',
@@ -55,8 +62,7 @@ class KamarForm
                         TagsInput::make('fasilitas')->required()->columnSpanFull(),
 
                         Group::make([
-                            Toggle::make('status')->label('Available')->default(true),
-                            Toggle::make('is_furnished')->label('Furnished')->default(false),
+                            Toggle::make('is_available')->label('Available')->default(true),
                         ])->columns(2),
                     ])
                     ->columnSpanFull(),
@@ -75,11 +81,7 @@ class KamarForm
 
                         RichEditor::make('keterangan')
                             ->extraAttributes(['style' => 'min-height: 300px;'])
-                            ->columnSpanFull(),
-
-                        Textarea::make('aturan_khusus')
-                            ->rows(4)
-                            ->columnSpanFull(),
+                            ->columnSpanFull(),            
                     ])
                     ->columnSpanFull(),
             ]);

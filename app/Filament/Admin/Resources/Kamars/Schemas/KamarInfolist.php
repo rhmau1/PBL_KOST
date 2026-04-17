@@ -59,24 +59,15 @@ class KamarInfolist
                             ->columnSpanFull(),
 
                         Group::make([
-                            IconEntry::make('status')
+                            IconEntry::make('is_available')
                                 ->label('Available')
                                 ->boolean()
                                 ->color(fn ($state) => $state ? 'success' : 'danger'),
-
-                            IconEntry::make('is_furnished')
-                                ->label('Furnished')
-                                ->boolean()
-                                ->color(fn ($state) => $state ? 'info' : 'gray'),
                         ])->columns(2),
 
                         TextEntry::make('keterangan')
                             ->label('Description')
                             ->html()
-                            ->columnSpanFull(),
-
-                        TextEntry::make('aturan_khusus')
-                            ->label('Special Rules')
                             ->columnSpanFull(),
                     ])
                     ->columnSpanFull(),

@@ -14,13 +14,13 @@ class StatsOverview extends StatsOverviewWidget
         $kosIds = Kos::where('user_id', auth()->id())->pluck('id');
 
         $kamarTerisi = Kamar::whereIn('kos_id', $kosIds)
-            ->where('status', 'terisi')
+            ->where('is_available', false)
             ->count();
 
         $totalKamar = Kamar::whereIn('kos_id', $kosIds)->count();
 
         $estimasiPendapatan = Kamar::whereIn('kos_id', $kosIds)
-            ->where('status', 'terisi')
+            ->where('is_available', true)
             ->sum('harga');
 
         return [

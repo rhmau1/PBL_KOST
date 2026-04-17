@@ -12,31 +12,27 @@ class Kamar extends Model
 
     protected $table = 'kamar';
 
-    protected $primaryKey = 'nomor';
-
     protected $fillable = [
+        'id',
         'nomor',
         'jenis',
         'harga',
         'ukuran',
         'fasilitas',
-        'status',
+        'is_available',
         'keterangan',
         'images',
         'tipe_penghuni',
         'kapasitas',
-        'is_furnished',
-        'aturan_khusus',
         'kos_id',
     ];
 
     protected $casts = [
         'fasilitas' => 'array',
         'harga' => 'integer',
-        'status' => 'boolean',
+        'is_available' => 'boolean',
         'images' => 'array',
         'kapasitas' => 'integer',
-        'is_furnished' => 'boolean',
     ];
 
     public function kos()

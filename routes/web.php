@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -11,7 +12,7 @@ Route::get('/waiting-approval', function () {
 })->name('waiting.approval');
 
 Route::post('/logout-pending', function (\Illuminate\Http\Request $request) {
-    auth()->logout();
+    Auth::logout();
     $request->session()->invalidate();
     $request->session()->regenerateToken();
     

@@ -55,7 +55,6 @@ class PenghuniPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
-                'role:penghuni',
             ]);
     }
 }
