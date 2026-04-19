@@ -13,6 +13,8 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
 
 class PenghuniResource extends Resource
 {
@@ -46,5 +48,23 @@ class PenghuniResource extends Resource
             'create' => CreatePenghuni::route('/create'),
             'edit' => EditPenghuni::route('/{record}/edit'),
         ];
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        $adminKosId = \App\Models\Kos::where('user_id', Auth::id())->first()?->id;
+
+        return parent::getEloquentQuery()
+            ->with(['user.pembayarans', 'kos'])
+            ->where(function ($query) use ($adminKosId) {
+                $query->where('kos_id', $adminKosId)
+                    ->orWhere(function ($query) use ($adminKosId) {
+                        $query->whereNull('kos_id')
+                            ->whereHas('user.pembayarans', function ($query) use ($adminKosId) {
+                                $query->whereIn('status', ['pending', 'rejected'])
+                                    ->where('kos_id', $adminKosId);
+                            });
+                    });
+            });
     }
 }

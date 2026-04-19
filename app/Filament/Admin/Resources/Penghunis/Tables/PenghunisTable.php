@@ -8,6 +8,7 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\Placeholder;
+use Filament\Forms\Components\Textarea;
 use Filament\Notifications\Notification;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -21,16 +22,20 @@ class PenghunisTable
         return $table
             ->columns([
                 TextColumn::make('nama')->searchable(),
-                TextColumn::make('no_hp'),
-                TextColumn::make('tanggal_masuk')->date(),
-                IconColumn::make('is_verified')
+                TextColumn::make('user.email')->label('Email'),
+                // TextColumn::make('user.pembayarans.status')->label('Status'),
+                IconColumn::make('user.pembayarans.status')
                     ->label('Status')
-                    ->getStateUsing(fn ($record) => $record->kos_id !== null)
-                    ->boolean()
-                    ->trueIcon('heroicon-o-check-badge')
-                    ->falseIcon('heroicon-o-clock')
-                    ->trueColor('success')
-                    ->falseColor('warning'),
+                    ->icon(fn ($record) => match(true) {
+                        $record->kos_id !== null => 'heroicon-o-check-badge',
+                        $record->user->pembayarans->where('status', 'rejected')->isNotEmpty() => 'heroicon-o-x-circle',
+                        default => 'heroicon-o-clock',
+                    })
+                    ->color(fn ($record) => match(true) {
+                        $record->kos_id !== null => 'success',
+                        $record->user->pembayarans->where('status', 'rejected')->isNotEmpty() => 'danger',
+                        default => 'warning',
+                    }),
             ])
             ->filters([
                 //
@@ -40,14 +45,14 @@ class PenghunisTable
                     ->label('Verifikasi')
                     ->icon('heroicon-o-check-circle')
                     ->color('success')
-                    ->visible(fn ($record) => is_null($record->kos_id))
+                    ->visible(fn ($record) => is_null($record->kos_id) && $record->user->pembayarans->where('status', 'pending')->isNotEmpty())
                     ->modalHeading('Verifikasi Pembayaran Penghuni')
                     ->modalDescription('Silakan cek detail kamar dan bukti transfer di bawah ini sebelum menyetujui akun penghuni.')
                     ->form([
                         Placeholder::make('detail')
                             ->label('Detail Booking')
                             ->content(function ($record) {
-                                $pembayaran = Pembayaran::with('kamar')->where('user_id', $record->user_id)->where('status', 'pending')->first();
+                                $pembayaran = $record->user->pembayarans->where('status', 'pending')->first();
                                 if (! $pembayaran) {
                                     return 'Tidak ada data.';
                                 }
@@ -58,7 +63,7 @@ class PenghunisTable
                         Placeholder::make('bukti_pembayaran')
                             ->label('Bukti Pembayaran')
                             ->content(function ($record) {
-                                $pembayaran = Pembayaran::where('user_id', $record->user_id)->where('status', 'pending')->first();
+                                $pembayaran = $record->user->pembayarans->where('status', 'pending')->first();
                                 if ($pembayaran && $pembayaran->bukti_pembayaran) {
                                     $url = asset('storage/'.$pembayaran->bukti_pembayaran);
 
@@ -67,11 +72,39 @@ class PenghunisTable
 
                                 return 'Tidak ada bukti pembayaran.';
                             }),
+                        Textarea::make('catatan')
+                            ->label('Catatan (Opsional)')
+                            ->placeholder('Alasan penolakan atau catatan tambahan...')
+                            ->rows(3),
                     ])
-                    ->action(function ($record) {
-                        $pembayaran = Pembayaran::where('user_id', $record->user_id)
-                            ->where('status', 'pending')
-                            ->first();
+                    ->extraModalActions([
+                        Action::make('tolak')
+                            ->label('Tolak')
+                            ->color('danger')
+                            ->icon('heroicon-o-x-circle')
+                            ->requiresConfirmation()
+                            ->modalHeading('Tolak Pembayaran')
+                            ->modalDescription('Apakah Anda yakin ingin menolak pembayaran ini? Status pembayaran akan berubah menjadi Rejected.')
+                            ->action(function ($record, array $data) {
+                                $pembayaran = Pembayaran::where('user_id', $record->user_id)
+                                    ->where('status', 'pending')
+                                    ->first();
+
+                                if ($pembayaran) {
+                                    $pembayaran->update([
+                                        'status' => 'rejected',
+                                        'catatan' => $data['catatan'] ?? 'Pembayaran ditolak oleh admin.',
+                                    ]);
+
+                                    Notification::make()
+                                        ->title('Pembayaran berhasil ditolak.')
+                                        ->danger()
+                                        ->send();
+                                }
+                            }),
+                    ])
+                    ->action(function ($record, array $data) {
+                        $pembayaran = $record->user->pembayarans->where('status', 'pending')->first();
 
                         if ($pembayaran) {
                             $record->update([
@@ -81,6 +114,7 @@ class PenghunisTable
 
                             $pembayaran->update([
                                 'status' => 'verified',
+                                'catatan' => $data['catatan'] ?? $pembayaran->catatan,
                             ]);
 
                             Notification::make()
