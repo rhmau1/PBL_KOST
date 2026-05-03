@@ -2,6 +2,7 @@
 
 namespace App\Filament\Penghuni\Resources\Pembayarans\Schemas;
 
+use Filament\Infolists\Components\ImageEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Schema;
 
@@ -21,7 +22,8 @@ class PembayaranInfolist
                     ->badge(),
                 TextEntry::make('jumlah')
                     ->numeric(),
-                TextEntry::make('bukti_pembayaran'),
+                ImageEntry::make('bukti_pembayaran')
+                    ->disk('public'),
                 TextEntry::make('status')
                     ->badge(),
                 TextEntry::make('tanggal_bayar')
